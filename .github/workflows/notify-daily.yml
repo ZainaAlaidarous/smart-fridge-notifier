@@ -2,8 +2,8 @@ name: Daily Notification Checker
 
 on:
   schedule:
-    - cron: '*/1 * * * *'  # كل دقيقة
-  workflow_dispatch:
+    - cron: '*/1 * * * *'  # ⏱️ كل دقيقة للاختبار
+  workflow_dispatch:        # لتشغيله يدويًا أيضًا
 
 jobs:
   run-script:
