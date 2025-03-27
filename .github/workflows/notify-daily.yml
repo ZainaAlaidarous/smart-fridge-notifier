@@ -2,7 +2,7 @@ name: Daily Notification Checker
 
 on:
   schedule:
-    - cron: '*/1 * * * *'  # كل دقيقة
+    - cron: '*/1 * * * *'
   workflow_dispatch:
 
 jobs:
