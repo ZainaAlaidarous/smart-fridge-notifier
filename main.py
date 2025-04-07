@@ -15,7 +15,7 @@ firebase_admin.initialize_app(cred)
 # إعداد الاتصال بقاعدة البيانات
 db = firestore.client()
 timezone = pytz.timezone('Asia/Riyadh')
-now = datetime.now(timezone)
+now = datetime.now(timezone)  # ✅ سيتم تخزين هذا كتاريخ من نوع Timestamp
 today = now.date()
 
 def check_expired_products():
@@ -69,7 +69,7 @@ def check_expired_products():
                         "status": "unread",
                         "product_name": product_name,
                         "expiry_date": expiry_str,
-                        "date": now.isoformat()
+                        "date": now  # ✅ تخزين التاريخ كـ Timestamp
                     }
                     notif_ref = users_ref.document(user_id).collection("Notifications").document(notif_id)
                     notif_ref.set(notif_data)
