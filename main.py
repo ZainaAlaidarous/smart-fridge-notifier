@@ -3,19 +3,18 @@ import json
 import pytz
 from datetime import datetime
 from dateutil import parser
-
 import firebase_admin
 from firebase_admin import credentials, firestore
 
-# تحميل بيانات الخدمة من متغير البيئة
+# تحميل بيانات الخدمة
 service_account_info = json.loads(os.environ["SERVICE_ACCOUNT_KEY"])
 cred = credentials.Certificate(service_account_info)
 firebase_admin.initialize_app(cred)
 
-# إعداد الاتصال بقاعدة البيانات
+# إعداد الاتصال
 db = firestore.client()
 timezone = pytz.timezone('Asia/Riyadh')
-now = datetime.now(timezone)  # ✅ سيتم تخزين هذا كتاريخ من نوع Timestamp
+now = datetime.now(timezone)
 today = now.date()
 
 def check_expired_products():
@@ -27,16 +26,32 @@ def check_expired_products():
         user_id = user.id
         print(f"🔍 Checking for user: {user_id}")
 
-        # جلب آخر رقم إشعار
+        notif_ref = users_ref.document(user_id).collection("Notifications")
+
+        # ✅ حذف الإشعارات القديمة إذا وصل العدد إلى 35 أو أكثر
+        all_notifs = notif_ref.stream()
+        notif_list = list(all_notifs)
+
+        if len(notif_list) >= 35:
+            print("🧹 Deleting all notifications (limit reached)...")
+            for notif in notif_list:
+                notif.reference.delete()
+
+            users_ref.document(user_id).update({
+                "lastNotificationNumber": 0
+            })
+            print("✅ Reset lastNotificationNumber to 0")
+            continue  # ننتقل للمستخدم التالي
+
+        # عدد الإشعارات الحالي
         last_notif_number = user_data.get("lastNotificationNumber", 0)
 
-        # الدخول على جميع الأقسام في Categories
+        # الأقسام
         categories_ref = users_ref.document(user_id).collection("Categories")
         categories = categories_ref.stream()
 
         for category in categories:
             category_id = category.id
-            print(f"📁 Category: {category_id}")
             products_ref = categories_ref.document(category_id).collection("Products")
             products = products_ref.stream()
 
@@ -44,21 +59,19 @@ def check_expired_products():
                 product_data = product.to_dict()
                 product_name = product_data.get("name", "")
                 expiry_str = product_data.get("expiry_date", "")
+
                 try:
                     expiry_date = parser.parse(expiry_str).date()
-                except Exception as e:
+                except Exception:
                     print(f"⚠️ Invalid date for {product_name}: {expiry_str}")
                     continue
 
                 days_left = (expiry_date - today).days
-                status = None
                 message = None
 
                 if days_left < 0:
-                    status = "expired"
                     message = f"Alert: Your item has expired!\n{product_name} expired on [{expiry_date.strftime('%d/%m/%Y')}]"
                 elif 0 <= days_left <= 3:
-                    status = "expiring"
                     message = f"Reminder: Your item is expiring soon!\n{product_name} expires on [{expiry_date.strftime('%d/%m/%Y')}]"
 
                 if message:
@@ -69,13 +82,12 @@ def check_expired_products():
                         "status": "unread",
                         "product_name": product_name,
                         "expiry_date": expiry_str,
-                        "date": now  # ✅ تخزين التاريخ كـ Timestamp
+                        "date": now
                     }
-                    notif_ref = users_ref.document(user_id).collection("Notifications").document(notif_id)
-                    notif_ref.set(notif_data)
+                    notif_ref.document(notif_id).set(notif_data)
                     print(f"✅ Notification created: {notif_id}")
 
-        # تحديث العداد
+        # تحديث العداد بعد الإضافة
         users_ref.document(user_id).update({
             "lastNotificationNumber": last_notif_number
         })
