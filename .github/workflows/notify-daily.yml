@@ -1,5 +1,4 @@
 name: Daily Notification Checker
-
 on:
   schedule:
     - cron: '0 */1 * * *'  # ✅ كل ساعتين
