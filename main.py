@@ -1,22 +1,3 @@
-import os
-import json
-import pytz
-from datetime import datetime
-from dateutil import parser
-import firebase_admin
-from firebase_admin import credentials, firestore
-
-# تحميل بيانات الخدمة
-service_account_info = json.loads(os.environ["SERVICE_ACCOUNT_KEY"])
-cred = credentials.Certificate(service_account_info)
-firebase_admin.initialize_app(cred)
-
-# إعداد الاتصال
-db = firestore.client()
-timezone = pytz.timezone('Asia/Riyadh')
-now = datetime.now(timezone)
-today = now.date()
-
 def check_expired_products():
     users_ref = db.collection("users")
     users = users_ref.stream()
@@ -27,11 +8,10 @@ def check_expired_products():
         print(f"🔍 Checking for user: {user_id}")
 
         notif_ref = users_ref.document(user_id).collection("Notifications")
-
-        # ✅ حذف الإشعارات القديمة إذا وصل العدد إلى 35 أو أكثر
         all_notifs = notif_ref.stream()
         notif_list = list(all_notifs)
 
+        # ✅ حذف الإشعارات القديمة إذا وصل العدد إلى 35 أو أكثر
         if len(notif_list) >= 35:
             print("🧹 Deleting all notifications (limit reached)...")
             for notif in notif_list:
@@ -41,10 +21,11 @@ def check_expired_products():
                 "lastNotificationNumber": 0
             })
             print("✅ Reset lastNotificationNumber to 0")
-            continue  # ننتقل للمستخدم التالي
 
-        # عدد الإشعارات الحالي
-        last_notif_number = user_data.get("lastNotificationNumber", 0)
+            # إعادة تعيين العداد في الذاكرة المحلية أيضًا
+            last_notif_number = 0
+        else:
+            last_notif_number = user_data.get("lastNotificationNumber", 0)
 
         # الأقسام
         categories_ref = users_ref.document(user_id).collection("Categories")
@@ -92,6 +73,3 @@ def check_expired_products():
             "lastNotificationNumber": last_notif_number
         })
         print(f"🔢 Updated lastNotificationNumber: {last_notif_number}")
-
-if __name__ == "__main__":
-    check_expired_products()
