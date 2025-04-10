@@ -1,3 +1,22 @@
+import os
+import json
+import pytz
+from datetime import datetime
+from dateutil import parser
+import firebase_admin
+from firebase_admin import credentials, firestore
+
+# تحميل بيانات الخدمة من متغير البيئة
+service_account_info = json.loads(os.environ["SERVICE_ACCOUNT_KEY"])
+cred = credentials.Certificate(service_account_info)
+firebase_admin.initialize_app(cred)
+
+# إعداد الاتصال
+db = firestore.client()
+timezone = pytz.timezone('Asia/Riyadh')
+now = datetime.now(timezone)
+today = now.date()
+
 def check_expired_products():
     users_ref = db.collection("users")
     users = users_ref.stream()
@@ -22,7 +41,7 @@ def check_expired_products():
             })
             print("✅ Reset lastNotificationNumber to 0")
 
-            # إعادة تعيين العداد في الذاكرة المحلية أيضًا
+            # إعادة تعيين العداد في الذاكرة
             last_notif_number = 0
         else:
             last_notif_number = user_data.get("lastNotificationNumber", 0)
@@ -73,3 +92,6 @@ def check_expired_products():
             "lastNotificationNumber": last_notif_number
         })
         print(f"🔢 Updated lastNotificationNumber: {last_notif_number}")
+
+if __name__ == "__main__":
+    check_expired_products()
