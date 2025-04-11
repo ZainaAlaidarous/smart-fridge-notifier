@@ -27,14 +27,14 @@ jobs:
         run: |
           pip install -r requirements.txt
 
-      # ✅ الخطوة 4: تشغيل سكربت main.py لفحص المنتجات وإنشاء إشعارات في Firestore
-      - name: ✅ Run main.py (check expired products)
+      # ✅ الخطوة 4: تشغيل check_expired_products.py لفحص المنتجات وإنشاء إشعارات في Firestore
+      - name: ✅ Run check_expired_products.py (check expired products)
         env:
           SERVICE_ACCOUNT_KEY: ${{ secrets.SERVICE_ACCOUNT_KEY }}  # 🔐 مفتاح Firebase يتم تحميله من GitHub Secrets
-        run: python main.py
+        run: python check_expired_products.py
 
-      # 📤 الخطوة 5: تشغيل send_notifications.py لإرسال إشعارات FCM للمستخدمين (غير المقروءة فقط)
-      - name: 📤 Run send_notifications.py (send FCM push)
+      # 📤 الخطوة 5: تشغيل send_unread_notifications.py لإرسال إشعارات FCM للمستخدمين (غير المقروءة فقط)
+      - name: 📤 Run send_unread_notifications.py (send FCM push)
         env:
           SERVICE_ACCOUNT_KEY: ${{ secrets.SERVICE_ACCOUNT_KEY }}  # 🔐 نفس المفتاح يستخدم هنا
-        run: python send_notifications.py
+        run: python send_unread_notifications.py
