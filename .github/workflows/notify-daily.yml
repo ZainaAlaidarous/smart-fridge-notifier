@@ -4,37 +4,37 @@ name: Daily Notification Checker
 # ⏰ جدول تشغيل المهمة:
 on:
   schedule:
-    - cron: '0 */1 * * *'  # ✅ يتم تشغيلها كل ساعة (لأغراض التجربة). يمكن تغييره لاحقًا إلى كل يوم
-  workflow_dispatch:        # ✅ يتيح لك تشغيلها يدويًا من واجهة GitHub
+    - cron: '0 */1 * * *'  # ✅ يتم تشغيلها كل ساعة (لأغراض التجربة)
+  workflow_dispatch:        # ✅ تشغيل يدوي من واجهة GitHub
 
 jobs:
   run-script:
-    runs-on: ubuntu-latest  # 🖥️ نظام التشغيل المستخدم لتشغيل السكربت (Ubuntu من GitHub)
+    runs-on: ubuntu-latest
 
     steps:
       # ⬇️ الخطوة 1: نسخ ملفات المشروع من GitHub
       - name: ⬇️ Checkout repository
         uses: actions/checkout@v3
 
-      # 🔧 الخطوة 2: تهيئة Python لاستخدامه
+      # 🔧 الخطوة 2: تهيئة Python
       - name: 🔧 Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'  # 🔢 الإصدار المطلوب من Python
+          python-version: '3.10'
 
-      # 📦 الخطوة 3: تثبيت المكتبات المطلوبة من requirements.txt
+      # 📦 الخطوة 3: تثبيت المكتبات المطلوبة
       - name: 📦 Install dependencies
         run: |
           pip install -r requirements.txt
 
-      # ✅ الخطوة 4: تشغيل check_expired_products.py لفحص المنتجات وإنشاء إشعارات في Firestore
-      - name: ✅ Run check_expired_products.py (check expired products)
+      # ✅ الخطوة 4: تشغيل main.py (فحص المنتجات وإنشاء الإشعارات)
+      - name: ✅ Run main.py (check expired products)
         env:
-          SERVICE_ACCOUNT_KEY: ${{ secrets.SERVICE_ACCOUNT_KEY }}  # 🔐 مفتاح Firebase يتم تحميله من GitHub Secrets
-        run: python check_expired_products.py
+          SERVICE_ACCOUNT_KEY: ${{ secrets.SERVICE_ACCOUNT_KEY }}
+        run: python main.py
 
-      # 📤 الخطوة 5: تشغيل send_unread_notifications.py لإرسال إشعارات FCM للمستخدمين (غير المقروءة فقط)
+      # 📤 الخطوة 5: تشغيل send_unread_notifications.py لإرسال الإشعارات
       - name: 📤 Run send_unread_notifications.py (send FCM push)
         env:
-          SERVICE_ACCOUNT_KEY: ${{ secrets.SERVICE_ACCOUNT_KEY }}  # 🔐 نفس المفتاح يستخدم هنا
+          SERVICE_ACCOUNT_KEY: ${{ secrets.SERVICE_ACCOUNT_KEY }}
         run: python send_unread_notifications.py
