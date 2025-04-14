@@ -40,13 +40,10 @@ def check_expired_products():
                 "lastNotificationNumber": 0
             })
             print("✅ Reset lastNotificationNumber to 0")
-
-            # إعادة تعيين العداد في الذاكرة
             last_notif_number = 0
         else:
             last_notif_number = user_data.get("lastNotificationNumber", 0)
 
-        # الأقسام
         categories_ref = users_ref.document(user_id).collection("Categories")
         categories = categories_ref.stream()
 
@@ -82,12 +79,12 @@ def check_expired_products():
                         "status": "unread",
                         "product_name": product_name,
                         "expiry_date": expiry_str,
-                        "date": now
+                        "date": now,
+                        "sent": False  # ✅ إضافة هذا الحقل لتتبع حالة الإرسال
                     }
                     notif_ref.document(notif_id).set(notif_data)
                     print(f"✅ Notification created: {notif_id}")
 
-        # تحديث العداد بعد الإضافة
         users_ref.document(user_id).update({
             "lastNotificationNumber": last_notif_number
         })
