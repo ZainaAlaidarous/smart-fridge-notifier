@@ -1,5 +1,3 @@
-# send_unread_notifications.py
-
 import os
 import json
 import requests
@@ -53,7 +51,7 @@ def send_fcm_notification_v1(token, title, body):
     else:
         print(f"❌ Failed to send notification: {response.status_code}, {response.text}")
 
-# إرسال الإشعارات غير المقروءة
+# إرسال الإشعارات غير المقروءة والغير مرسلة
 def send_unread_notifications():
     users_ref = db.collection("users")
     users = users_ref.stream()
@@ -68,12 +66,21 @@ def send_unread_notifications():
             continue
 
         notif_ref = users_ref.document(user_id).collection("Notifications")
-        unread_notifs = notif_ref.where("status", "==", "unread").stream()
+        # ✅ تعديل الشرط ليشمل فقط الإشعارات غير المقروءة والتي لم تُرسل
+        unread_notifs = notif_ref.where("status", "==", "unread").where("sent", "==", False).stream()
 
         for notif in unread_notifs:
             notif_data = notif.to_dict()
             message = notif_data.get("message")
+            notif_id = notif.id
+
             send_fcm_notification_v1(token, "Smart Fridge Alert", message)
+
+            # ✅ تحديث حقل 'sent' بعد الإرسال
+            notif_ref.document(notif_id).update({
+                "sent": True
+            })
+            print(f"📤 Notification sent and marked as sent: {notif_id}")
 
 if __name__ == "__main__":
     send_unread_notifications()
