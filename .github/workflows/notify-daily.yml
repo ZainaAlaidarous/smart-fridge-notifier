@@ -4,7 +4,7 @@ name: Daily Notification Checker
 # ⏰ جدول تشغيل المهمة:
 on:
   schedule:
-    - cron: '0 */1 * * *'  # ✅ يتم تشغيلها كل ساعة (لأغراض التجربة)
+     - cron: '0 0 * * *'  # ✅ يتم تشغيلها كل ساعة (لأغراض التجربة)
   workflow_dispatch:        # ✅ تشغيل يدوي من واجهة GitHub
 
 jobs:
