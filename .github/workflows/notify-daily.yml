@@ -1,39 +1,38 @@
-# 📛 اسم المهمة الظاهر في GitHub Actions
+# 📛 The name of the GitHub Actions workflow
 name: Daily Notification Checker
 
-# ⏰ جدول تشغيل المهمة:
+# ⏰ Workflow trigger schedule:
 on:
   schedule:
-     - cron: '0 0 * * *'  # ✅ يتم تشغيلها كل ساعة (لأغراض التجربة)
-  workflow_dispatch:        # ✅ تشغيل يدوي من واجهة GitHub
-
+     - cron: '0 0 * * *' # ✅ Runs once every 24 hours 
+  workflow_dispatch:       # ✅ Allows manual trigger from GitHub UI
 jobs:
   run-script:
     runs-on: ubuntu-latest
 
     steps:
-      # ⬇️ الخطوة 1: نسخ ملفات المشروع من GitHub
+      # ⬇️ Step 1: Checkout project files from GitHub repository
       - name: ⬇️ Checkout repository
         uses: actions/checkout@v3
 
-      # 🔧 الخطوة 2: تهيئة Python
+      # 🔧 Step 2: Set up Python environment
       - name: 🔧 Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
-      # 📦 الخطوة 3: تثبيت المكتبات المطلوبة
+      # 📦 Step 3: Install required dependencies
       - name: 📦 Install dependencies
         run: |
           pip install -r requirements.txt
 
-      # ✅ الخطوة 4: تشغيل main.py (فحص المنتجات وإنشاء الإشعارات)
+      # ✅ Step 4: Run main.py (check expired products and generate notifications)
       - name: ✅ Run main.py (check expired products)
         env:
           SERVICE_ACCOUNT_KEY: ${{ secrets.SERVICE_ACCOUNT_KEY }}
         run: python main.py
 
-      # 📤 الخطوة 5: تشغيل send_unread_notifications.py لإرسال الإشعارات
+      # 📤 Step 5: Run send_unread_notifications.py to send push notifications
       - name: 📤 Run send_unread_notifications.py (send FCM push)
         env:
           SERVICE_ACCOUNT_KEY: ${{ secrets.SERVICE_ACCOUNT_KEY }}
